@@ -7,15 +7,10 @@ import time
 displayio.release_displays()
 
 matrix = rgbmatrix.RGBMatrix(
-    width=64,
-    height=32,
-    bit_depth=2,
-    rgb_pins=[board.D6, board.D5, board.D9, board.D11, board.D10, board.D12],
-    addr_pins=[board.A5, board.A4, board.A3, board.A2],
-    clock_pin=board.D13,
-    latch_pin=board.D0,
-    output_enable_pin=board.D1,
-)
+    width=64, height=32, bit_depth=1,
+    rgb_pins=[board.IO1, board.IO2, board.IO3, board.IO5, board.IO4, board.IO6],
+    addr_pins=[board.IO8, board.IO7, board.IO10, board.IO9],
+    clock_pin=board.IO12, latch_pin=board.IO11, output_enable_pin=board.IO13)
 
 display = framebufferio.FramebufferDisplay(matrix, auto_refresh=False)
 
@@ -71,30 +66,32 @@ display_height = display.height
 
 color_index = 0
 
-edge_hit = False
-
 while True:
     x_pos += x_velocity
     y_pos += y_velocity
 
-    if x_pos <= 0 or x_pos + logo_width > display_width or y_pos <= 0 or y_pos + logo_height > display_height:
-        edge_hit = True
-    else:
-        edge_hit = False
-
-    if edge_hit:
+    if x_pos <= 0:
+        x_pos = 0
+        x_velocity = abs(x_velocity) 
         color_index = (color_index + 1) % len(color_palette)
-        logo_palette[1] = color_palette[color_index]
+    elif x_pos + logo_width >= display_width:
+        x_pos = display_width - logo_width
+        x_velocity = -abs(x_velocity)  
+        color_index = (color_index + 1) % len(color_palette)
 
-        if x_pos <= 0 or x_pos + logo_width > display_width:
-            x_velocity = -x_velocity
+    if y_pos <= 0:
+        y_pos = 0
+        y_velocity = abs(y_velocity) 
+        color_index = (color_index + 1) % len(color_palette)
+    elif y_pos + logo_height >= display_height:
+        y_pos = display_height - logo_height
+        y_velocity = -abs(y_velocity) 
+        color_index = (color_index + 1) % len(color_palette)
 
-        if y_pos <= 0 or y_pos + logo_height > display_height:
-            y_velocity = -y_velocity
-
+    logo_palette[1] = color_palette[color_index]
     logo_tile.x = x_pos
     logo_tile.y = y_pos
 
     display.refresh()
 
-    time.sleep(0.08)
+    time.sleep(0.13)
